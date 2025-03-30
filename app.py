@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
-import string 
-import random 
+import string
 import secrets  
 
 app = Flask(__name__)
@@ -11,33 +10,35 @@ def index():
 
 @app.route('/generar', methods=['POST'])
 def generar_contraseña():
-    longitud = request.form['longitud']
-    longitud = int(longitud)
+    try:
+        longitud = int(request.form['longitud'])
+        if longitud < 4:
+            return render_template('gencontra.html', error="La longitud debe ser de al menos 4 caracteres.")
 
-    # Definimos el conjunto de caracteres que se pueden usar en la contraseña
-    caracteres = string.ascii_letters + string.digits + string.punctuation
+        # Definir los caracteres permitidos
+        caracteres = string.ascii_letters + string.digits + string.punctuation
 
-    # Creamos una lista vacía para almacenar los caracteres de la contraseña
-    contraseña = []
+        # Crear la contraseña asegurando al menos un carácter de cada tipo
+        contraseña = [
+            secrets.choice(string.ascii_lowercase),
+            secrets.choice(string.ascii_uppercase),
+            secrets.choice(string.digits),
+            secrets.choice(string.punctuation)
+        ]
 
-    # Añadimos al menos un carácter de cada tipo (minúscula, mayúscula, número y especial) a la contraseña
-    contraseña.append(random.choice(string.ascii_lowercase))  # Añadimos una minúscula
-    contraseña.append(random.choice(string.ascii_uppercase))  # Añadimos una mayúscula
-    contraseña.append(random.choice(string.digits))  # Añadimos un número
-    contraseña.append(random.choice(string.punctuation))  # Añadimos un carácter especial
+        # Completar el resto de la contraseña con caracteres aleatorios
+        contraseña += [secrets.choice(caracteres) for _ in range(longitud - 4)]
 
-    # Completamos la contraseña con caracteres aleatorios hasta alcanzar la longitud deseada
-    while len(contraseña) < longitud:
-        contraseña.append(secrets.choice(caracteres))  # Usamos secrets.choice para mayor seguridad
+        # Mezclar los caracteres de la contraseña de manera segura
+        secrets.SystemRandom().shuffle(contraseña)
 
-    # Mezclamos los caracteres de la contraseña para evitar patrones predecibles
-    random.shuffle(contraseña)
+        # Convertir la lista en una cadena
+        contraseña = "".join(contraseña)
 
-    # Convertimos la lista de caracteres en una cadena
-    contraseña = "".join(contraseña)
-
-    # Renderizamos la contraseña en la plantilla HTML
-    return render_template('gencontra.html', contraseña=contraseña)
+        return render_template('gencontra.html', contraseña=contraseña)
+    
+    except ValueError:
+        return render_template('gencontra.html', error="Ingrese un número válido.")
 
 if __name__ == '__main__':
     app.run(debug=True)
