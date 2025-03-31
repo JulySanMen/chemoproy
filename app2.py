@@ -1,16 +1,26 @@
-import socket
+from flask import Flask, render_template
+from flask_socketio import SocketIO
+from scapy.all import sniff
 
-# Crear un socket RAW para capturar paquetes
-sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
+app = Flask(__name__)
+socketio = SocketIO(app)
 
-# Escuchar en la interfaz de red (reemplazar con la adecuada)
-sniffer.bind(("0.0.0.0", 0))
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# Habilitar el modo promiscuo (solo en Windows, para Linux se usa `tcpdump`)
-sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
+def capturar_paquetes(paquete):
+    # Extraer información del paquete
+    data = {
+        "origen": paquete.src if hasattr(paquete, 'src') else "Desconocido",
+        "destino": paquete.dst if hasattr(paquete, 'dst') else "Desconocido",
+        "protocolo": paquete.proto if hasattr(paquete, 'proto') else "Desconocido"
+    }
+    socketio.emit('nuevo_paquete', data)  # Enviar paquete al frontend en tiempo real
 
-print("[*] Escuchando paquetes...")
+@socketio.on('iniciar_sniffer')
+def iniciar_sniffer():
+    sniff(prn=capturar_paquetes, store=False)  # Capturar paquetes en tiempo real
 
-while True:
-    paquete, addr = sniffer.recvfrom(65535)  # Recibir paquetes
-    print(f"Paquete recibido desde {addr}: {paquete[:20]}")  # Mostrar primeros bytes
+if __name__ == '__main__':
+    socketio.run(app, debug=True)
