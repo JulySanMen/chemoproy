@@ -11,13 +11,16 @@
     <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center w-96">
         <h1 class="text-2xl font-bold text-blue-400">🔒 Generador de Contraseñas</h1>
         
-        <form action="/generar" method="post" class="mt-6">
+        <form action="/generar" method="post" class="mt-6 space-y-4">
             <input type="number" name="longitud" min="4" placeholder="Longitud (mínimo 4)" 
-                class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
+            
+            <input type="number" name="cantidad" min="1" placeholder="Cantidad de contraseñas" 
+                class="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-400" required>
             
             <button type="submit" 
-                class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full transition duration-300">
-                🔄 Generar Contraseña
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full transition duration-300">
+                🔄 Generar Contraseñas
             </button>
         </form>
 
@@ -25,10 +28,14 @@
             <p class="mt-4 text-red-400">{{ error }}</p>
         {% endif %}
 
-        {% if contraseña %}
-            <div class="mt-6 p-4 bg-gray-700 rounded-lg">
-                <h2 class="text-lg font-semibold text-green-400">Tu contraseña generada:</h2>
-                <p class="text-xl font-bold text-yellow-400 break-all">{{ contraseña }}</p>
+        {% if contraseñas %}
+            <div class="mt-6 p-4 bg-gray-700 rounded-lg text-left">
+                <h2 class="text-lg font-semibold text-green-400">Contraseñas generadas:</h2>
+                <ul class="mt-2 space-y-2">
+                    {% for contraseña in contraseñas %}
+                        <li class="bg-gray-600 p-2 rounded text-yellow-400 font-mono">{{ contraseña }}</li>
+                    {% endfor %}
+                </ul>
             </div>
         {% endif %}
     </div>
