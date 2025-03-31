@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sniffer de Red</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid black; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Sniffer de Red</h1>
+    <button onclick="iniciarSniffer()">Iniciar Sniffer</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Origen</th>
+                <th>Destino</th>
+                <th>Protocolo</th>
+            </tr>
+        </thead>
+        <tbody id="paquetes"></tbody>
+    </table>
+
+    <script>
+        var socket = io.connect("http://" + document.domain + ":" + location.port);
+
+        function iniciarSniffer() {
+            socket.emit('iniciar_sniffer');
+        }
+
+        socket.on('nuevo_paquete', function(data) {
+            let fila = `<tr><td>${data.origen}</td><td>${data.destino}</td><td>${data.protocolo}</td></tr>`;
+            document.getElementById("paquetes").innerHTML += fila;
+        });
+    </script>
+</body>
+</html>
