@@ -14,8 +14,8 @@ def generar_contraseñas():
         longitud = int(request.form['longitud'])
         cantidad = int(request.form['cantidad'])
 
-        if longitud < 4:
-            return render_template('gencontra.html', error="La longitud debe ser de al menos 4 caracteres.")
+        if longitud < 8:
+            return render_template('gencontra.html', error="La longitud debe ser de al menos 8 caracteres.")
         if cantidad < 1:
             return render_template('gencontra.html', error="Debes generar al menos 1 contraseña.")
 
