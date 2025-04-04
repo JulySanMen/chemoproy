@@ -1,12 +1,7 @@
-from pynput import keyboard
+from pynput.keyboard import Listener
 
 def on_press(key):
-    try:
-        with open("registro_teclas.txt", "a") as archivo:
-            archivo.write(f'{key.char}\n')
-    except AttributeError:
-        with open("registro_teclas.txt", "a") as archivo:
-            archivo.write(f'{key}\n')
+    print(f'Tecla presionada: {key}')
 
-with keyboard.Listener(on_press=on_press) as listener:
+with Listener(on_press=on_press) as listener:
     listener.join()
