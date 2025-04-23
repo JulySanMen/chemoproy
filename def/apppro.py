@@ -22,31 +22,31 @@ def send_command(ip, command):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("indexpro.html")
 
 @app.route("/connect", methods=["POST"])
 def connect():
     ip = request.form.get("ip")
     response = send_command(ip, "PING")
-    return render_template("index.html", ip=ip, response=response)
+    return render_template("indexpro.html", ip=ip, response=response)
 
 @app.route("/start", methods=["POST"])
 def start():
     ip = request.form.get("ip")
     response = send_command(ip, "START")
-    return render_template("index.html", ip=ip, response=response)
+    return render_template("indexpro.html", ip=ip, response=response)
 
 @app.route("/view_logs", methods=["POST"])
 def view_logs():
     ip = request.form.get("ip")
     response = send_command(ip, "GET_LOG")
-    return render_template("index.html", ip=ip, log=response)
+    return render_template("indexpro.html", ip=ip, log=response)
 
 @app.route("/delete", methods=["POST"])
 def delete():
     ip = request.form.get("ip")
     response = send_command(ip, "DELETE_ALL")
-    return render_template("index.html", ip=ip, response=response)
+    return render_template("indexpro.html", ip=ip, response=response)
 
 if __name__ == "__main__":
     app.run(debug=True)
