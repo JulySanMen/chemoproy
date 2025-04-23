@@ -86,4 +86,4 @@ def server_loop():
             threading.Thread(target=handle_client, args=(conn,), daemon=True).start()
 
 if __name__ == "__main__":
-    server_loop()
+    server_loop()nning on port 10000
