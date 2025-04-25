@@ -33,6 +33,7 @@
     <form method="POST" action="/delete">
         <input type="hidden" name="ip" value="{{ ip }}">
         <button type="submit" style="color: red;">Borrar Evidencia</button>
+        
     </form>
     {% endif %}
 
@@ -45,16 +46,11 @@
     <h2>Logs:</h2>
     <textarea readonly>{{ log }}</textarea>
     {% endif %}
-
-    {% if screenshot %}
-    <p>{{ screenshot }}</p>
-    <h2>Captura guardada:</h2>
-    <p>
-        <a href="{{ url_for('static', filename=screenshot) }}" target="_blank">
-            Ver imagen en tamaño completo
-        </a>
-    </p>
-    <img src="{{ url_for('static', filename=screenshot) }}" alt="Screenshot">
+    
+    {% if nombre %}
+    <p>DEBUG: uploads/{{ ip.replace('.', '_') }}/{{ nombre }}</p>
+    <img src="{{ url_for('static', filename='uploads/' + ip.replace('.', '_') + '/' + nombre) }}" alt="Screenshot">
     {% endif %}
+
 </body>
 </html>
