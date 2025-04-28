@@ -1,17 +1,12 @@
 import socket
 
-HOST = '0.0.0.0'
-PORT = 12345
+server_ip = "192.168.1.96"  # Cambia esto por la IP real de B
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen(1)
-    conn, addr = s.accept()
-    with conn:
-        print('Conectado por', addr)
-        with open('imagen_recibida.jpg', 'wb') as f:
-            while True:
-                data = conn.recv(4096)
-                if not data:
-                    break
-                f.write(data)
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((server_ip, 9999))
+
+with open("perr.jpg", "rb") as f:
+    client_socket.sendfile(f)
+
+client_socket.close()
+print("Imagen enviada.")
